@@ -2,10 +2,10 @@ import { Stack, Title, Anchor, Flex, Text, Button } from "@mantine/core";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowBackUp } from "tabler-icons-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { IQuestion } from "../types";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
+import axxios from "../axxios";
 
 const Evaluation = () => {
   const { user } = useUser();
@@ -23,7 +23,7 @@ const Evaluation = () => {
   const [currentAnswer, setCurrentAnswer] = useState<number>();
 
   const questionsRequest = useQuery(["questions", id], () =>
-    axios.get<IQuestion[]>("http://localhost:3000/questions", {
+    axxios.get<IQuestion[]>(`/questions`, {
       params: {
         skillId: id,
       },
@@ -31,7 +31,7 @@ const Evaluation = () => {
   );
 
   const submitRequest = useMutation((answerId: number) =>
-    axios.post("http://localhost:3000/submits", {
+    axxios.post("/submits", {
       user: user!.id,
       answerId,
     })

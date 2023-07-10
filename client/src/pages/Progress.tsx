@@ -1,15 +1,15 @@
 import { Flex, Stack, Text, Title } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { ISkill } from "../types";
 import { PlayerPlay } from "tabler-icons-react";
 import { useNavigate } from "react-router-dom";
+import axxios from "../axxios";
 
 const Progress = () => {
   const navigate = useNavigate();
 
   const request = useQuery(["skills"], () =>
-    axios.get<ISkill[]>("http://localhost:3000/skills", {
+    axxios.get<ISkill[]>("/skills", {
       params: { status: "LIVE" },
     })
   );

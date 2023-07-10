@@ -11,10 +11,10 @@ import { useState } from "react";
 import { nanoid } from "nanoid";
 import { Trash } from "tabler-icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { ISkill } from "../../types";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import axxios from "../../axxios";
 
 const NewQuestion = () => {
   const { id } = useParams();
@@ -29,12 +29,12 @@ const NewQuestion = () => {
   ]);
 
   const skillRequest = useQuery(["skill", id], () =>
-    axios.get<ISkill>(`http://localhost:3000/skills/${id}`)
+    axxios.get<ISkill>(`/skills/${id}`)
   );
 
   const questionRequest = useMutation(
     () =>
-      axios.post("http://localhost:3000/questions", {
+      axxios.post("/questions", {
         text,
         answers,
         skillId: +id,

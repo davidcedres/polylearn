@@ -8,17 +8,17 @@ import {
 } from "@mantine/core";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
+import axxios from "../../axxios";
 
 const NewSkill = () => {
   const navigate = useNavigate();
   const [text, setText] = useState("");
 
   const request = useMutation((name: string) =>
-    axios.post("http://localhost:3000/skills", { name, status: "DRAFT" })
+    axxios.post("/skills", { name, status: "DRAFT" })
   );
 
   const onSubmit = () => {

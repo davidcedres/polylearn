@@ -10,16 +10,14 @@ import {
   Badge,
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ISkill } from "../../types";
+import axxios from "../../axxios";
 
 const Admin = () => {
   const navigate = useNavigate();
 
-  const request = useQuery(["skills"], () =>
-    axios.get<ISkill[]>("http://localhost:3000/skills")
-  );
+  const request = useQuery(["skills"], () => axxios.get<ISkill[]>("/skills"));
 
   const onClick = (id: number) => navigate(`/skills/${id}`);
 

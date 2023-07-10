@@ -9,10 +9,10 @@ import {
   Text,
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { useParams } from "react-router";
 import { ISkill, IQuestion } from "../../types";
 import { Link } from "react-router-dom";
+import axxios from "../../axxios";
 
 const Skill = () => {
   const { id } = useParams();
@@ -20,11 +20,11 @@ const Skill = () => {
   if (!id) throw new Error("Id missing");
 
   const request = useQuery(["skill", id], () =>
-    axios.get<ISkill>(`http://localhost:3000/skills/${id}`)
+    axxios.get<ISkill>(`/skills/${id}`)
   );
 
   const questionsRequest = useQuery(["questions", id], () =>
-    axios.get<IQuestion[]>("http://localhost:3000/questions", {
+    axxios.get<IQuestion[]>("/questions", {
       params: {
         skillId: id,
       },

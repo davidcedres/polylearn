@@ -6,20 +6,19 @@ import axios from "axios";
 import { IQuestion } from "../types";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { toast } from "react-hot-toast";
 
 const Evaluation = () => {
-  const { user } = useUser()
+  const { user } = useUser();
 
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { id } = useParams();
   if (!id) throw new Error("Id missing");
 
   // keep track of what answers has the user picked
-  const [answers, setAnswers] = useState<number[]>([])
-  
+  const [answers, setAnswers] = useState<number[]>([]);
+
   const [index, setIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState<number>();
 
@@ -31,36 +30,48 @@ const Evaluation = () => {
     })
   );
 
-  const submitRequest = useMutation((answerId: number) => axios.post('http://localhost:3000/submits', { 
+  const submitRequest = useMutation((answerId: number) =>
+    axios.post("http://localhost:3000/submits", {
       user: user!.id,
-      answerId
-   }))
+      answerId,
+    })
+  );
 
   useEffect(() => {
-    if (answers.length !== questionsRequest.data?.data.length) return
-    if (submitRequest.isLoading) return
+    if (answers.length !== questionsRequest.data?.data.length) return;
+    if (submitRequest.isLoading) return;
 
-    console.log('Effect Called')
+    console.log("Effect Called");
 
     // we know we reached the end
     const exec = async () => {
-      await Promise.all(answers.map((answerId) => submitRequest.mutateAsync(answerId)))
-      await queryClient.invalidateQueries(['skills'])
-      navigate('/success')
-    }
+      await Promise.all(
+        answers.map((answerId) => submitRequest.mutateAsync(answerId))
+      );
+      await queryClient.invalidateQueries(["skills"]);
+      navigate("/success");
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    exec()
-    
-  }, [answers, answers.length, navigate, queryClient, questionsRequest.data?.data.length, submitRequest])
+    exec();
+  }, [
+    answers,
+    answers.length,
+    navigate,
+    queryClient,
+    questionsRequest.data?.data.length,
+    submitRequest,
+  ]);
 
   const next = () => {
-    if (currentAnswer === undefined) throw new Error('Answer missing')
+    if (currentAnswer === undefined) throw new Error("Answer missing");
 
-    setAnswers(prev => ([...prev, currentAnswer]))
-    setIndex((prev) => (prev === questionsRequest.data?.data.length ?  prev : prev + 1));
+    setAnswers((prev) => [...prev, currentAnswer]);
+    setIndex((prev) =>
+      prev === questionsRequest.data?.data.length ? prev : prev + 1
+    );
 
-    setCurrentAnswer(undefined)
+    setCurrentAnswer(undefined);
   };
 
   const question = questionsRequest.data?.data[index];
@@ -85,7 +96,7 @@ const Evaluation = () => {
             borderWidth: "1px",
             borderStyle: "solid",
             cursor: "pointer",
-            backgroundColor: currentAnswer == answer.id ? '#E7F5FF' : 'white'
+            backgroundColor: currentAnswer == answer.id ? "#E7F5FF" : "white",
           }}
           align="center"
           onClick={() => setCurrentAnswer(answer.id)}
@@ -94,7 +105,11 @@ const Evaluation = () => {
         </Flex>
       ))}
 
-      <Button sx={{ alignSelf: "flex-end" }} onClick={next} disabled={currentAnswer === undefined}>
+      <Button
+        sx={{ alignSelf: "flex-end" }}
+        onClick={next}
+        disabled={currentAnswer === undefined}
+      >
         Next
       </Button>
     </Stack>

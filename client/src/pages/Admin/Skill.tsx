@@ -7,14 +7,12 @@ import {
   Title,
   Table,
   Text,
-  Tabs,
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useParams } from "react-router";
 import { ISkill, IQuestion } from "../../types";
 import { Link } from "react-router-dom";
-import { List, Settings } from "tabler-icons-react";
 
 const Skill = () => {
   const { id } = useParams();

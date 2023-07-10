@@ -9,7 +9,9 @@ const Progress = () => {
   const navigate = useNavigate();
 
   const request = useQuery(["skills"], () =>
-    axios.get<ISkill[]>("http://localhost:3000/skills", { params: {  status: 'LIVE'  }})
+    axios.get<ISkill[]>("http://localhost:3000/skills", {
+      params: { status: "LIVE" },
+    })
   );
 
   const onClick = (id: number) => {

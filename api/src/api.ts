@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const port = 3000;
+const port = 8080;
 
 app.post("/skills", async (req, res) => {
     const skill = await prisma.skill.create({ data: req.body });

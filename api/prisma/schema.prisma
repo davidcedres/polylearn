@@ -46,6 +46,5 @@ model Submit {
   answerId Int
   answer   Answer @relation(fields: [answerId], references: [id])
 
-  // id Int @id @default(autoincrement())
   @@id([user, answerId])
 }

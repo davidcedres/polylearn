@@ -1,6 +1,13 @@
+import "dotenv/config";
+import {
+    ClerkExpressRequireAuth,
+    RequireAuthProp,
+    users,
+} from "@clerk/clerk-sdk-node";
 import { PrismaClient } from "@prisma/client";
-import express from "express";
+import { stringify } from "csv-stringify/sync";
 import cors from "cors";
+import express from "express";
 
 const prisma = new PrismaClient();
 
@@ -10,25 +17,62 @@ app.use(express.json());
 
 const port = 8080;
 
-app.post("/skills", async (req, res) => {
+app.post("/skills", ClerkExpressRequireAuth(), async (req, res) => {
     const skill = await prisma.skill.create({ data: req.body });
     res.json(skill);
 });
 
-app.get("/skills", async (req, res) => {
-    const skills = await prisma.skill.findMany({
-        include: {
-            questions: true,
-        },
-        orderBy: {
-            id: 'asc'
-        },
-    })
 
-    res.json(skills);
-});
+app.get(
+    "/skills",
+    ClerkExpressRequireAuth(),
+    // @ts-expect-error
+    async (req: RequireAuthProp<express.Request>, res) => {
+        const userId = req.auth.userId;
+        const { role } = (await users.getUser(userId)).publicMetadata;
 
-app.get("/skills/:id", async (req, res) => {
+        const skills = await prisma.skill.findMany({
+            include: {
+                questions: true,
+            },
+            orderBy: {
+                id: "asc",
+            },
+            where: {
+                ...(role !== "admin" && { status: "LIVE" }),
+            },
+        });
+
+        if (role === "admin") return res.json(skills);
+
+        // so we gotta append .done to each skill for participants to know
+        const submits = await prisma.submit.findMany({
+            where: { user: userId },
+            include: {
+                answer: {
+                    include: {
+                        question: true,
+                    },
+                },
+            },
+        });
+
+        const completedSkills = new Set(
+            submits.map((submit) => submit.answer.question.skillId)
+        );
+
+        const skillsWithCompletion = skills.map((skill) => ({
+            ...skill,
+            completed: completedSkills.has(skill.id),
+        }));
+
+        console.log(skillsWithCompletion);
+
+        res.json(skillsWithCompletion);
+    }
+);
+
+app.get("/skills/:id", ClerkExpressRequireAuth(), async (req, res) => {
     const skill = await prisma.skill.findUnique({
         where: {
             id: +req.params.id,
@@ -38,7 +82,7 @@ app.get("/skills/:id", async (req, res) => {
     res.json(skill);
 });
 
-app.post("/questions", async (req, res) => {
+app.post("/questions", ClerkExpressRequireAuth(), async (req, res) => {
     const { text, answers, skillId } = req.body as {
         text: string;
         answers: { text: string; id: string }[];
@@ -66,32 +110,80 @@ app.post("/questions", async (req, res) => {
     res.json({ good: true });
 });
 
-app.get("/questions", async (req, res) => {
+app.get("/questions", ClerkExpressRequireAuth(), async (req, res) => {
     const questions = await prisma.question.findMany({
         include: {
-            answers: true
+            answers: true,
         },
         where: {
-            skillId: +req.query.skillId!
-        }
+            skillId: +req.query.skillId!,
+        },
     });
     res.json(questions);
 });
 
-app.post("/submits", async (req, res) => {
+app.post("/submits", ClerkExpressRequireAuth(), async (req, res) => {
     try {
         const submit = await prisma.submit.create({ data: req.body });
         res.json(submit);
     }
+
     catch (error) {
-        res.json({ bad: true })
+        // fails silently, good for double attempts
+        res.json({ bad: true });
     }
 });
 
-// TODO
-app.get("/submits", async (req, res) => {
-    const submits = await prisma.submit.findMany();
+app.get("/submits", ClerkExpressRequireAuth(), async (req, res) => {
+    const submits = await prisma.submit.findMany({
+        include: {
+            answer: {
+                include: {
+                    question: {
+                        include: {
+                            skill: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+
     res.json(submits);
+});
+
+app.get("/dataset", ClerkExpressRequireAuth(), async (req, res) => {
+
+    try {
+        const submits = await prisma.submit.findMany({
+            include: {
+                answer: {
+                    include: {
+                        question: {
+                            include: {
+                                skill: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        const data = submits.map((submit) => [
+            submit.user,
+            submit.answer.question.skill.name,
+            submit.answer.question.text,
+            submit.answer.text,
+        ]);
+
+        const str = stringify(data);
+
+        res.status(200).send(str);
+    }
+
+    catch (error) {
+        res.json({ bad: true })
+    }
 });
 
 app.listen(port, () => {

@@ -1,7 +1,7 @@
 import { Flex, Stack, Text, Title } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { ISkill } from "../types";
-import { PlayerPlay } from "tabler-icons-react";
+import { Check, PlayerPlay } from "tabler-icons-react";
 import { useNavigate } from "react-router-dom";
 import axxios from "../axxios";
 
@@ -9,7 +9,7 @@ const Progress = () => {
   const navigate = useNavigate();
 
   const request = useQuery(["skills"], () =>
-    axxios.get<ISkill[]>("/skills", {
+    axxios.get<(ISkill & { completed: boolean })[]>("/skills", {
       params: { status: "LIVE" },
     })
   );
@@ -36,17 +36,21 @@ const Progress = () => {
             borderColor: "#C1C2C5",
             borderWidth: "1px",
             borderStyle: "solid",
-            cursor: "pointer",
+            cursor: !skill.completed ? "pointer" : undefined,
           }}
           align="center"
-          onClick={() => onClick(skill.id)}
+          onClick={() => !skill.completed && onClick(skill.id)}
         >
           <Stack>
             <Text fw="bold">{skill.name}</Text>
             <Text>{skill.questions.length} questions</Text>
           </Stack>
 
-          <PlayerPlay color="#00abfb" />
+          {skill.completed ? (
+            <Check color="#00b341" />
+          ) : (
+            <PlayerPlay color="#00abfb" />
+          )}
         </Flex>
       ))}
     </Stack>

@@ -8,18 +8,18 @@ export interface ISkill {
 export interface IQuestion {
     id: number,
     text: string
-    answers: Answer[]
+    answers: IAnswer[]
+    skill: ISkill
 }
 
 
-export interface Answer {
+export interface IAnswer {
     id: number,
     text: string
+    question: IQuestion
 }
 
-export interface Submit {
-    id: number,
+export interface ISubmit {
     user: string,
-    question: IQuestion
-    answer: Answer
+    answer: IAnswer
 }

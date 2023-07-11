@@ -16,6 +16,8 @@
     "@mantine/hooks": "^6.0.16",
     "@tanstack/react-query": "^4.29.19",
     "axios": "^1.4.0",
+    "file-saver": "^2.0.5",
+    "lodash": "^4.17.21",
     "lottie-react": "^2.4.0",
     "nanoid": "^4.0.2",
     "react": "^18.2.0",
@@ -26,6 +28,8 @@
     "tabler-icons-react": "^1.56.0"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.5",
+    "@types/lodash": "^4.14.195",
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.6",
     "@typescript-eslint/eslint-plugin": "^5.61.0",

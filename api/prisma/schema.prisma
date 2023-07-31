@@ -7,6 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String @id @unique
+  signature String
+
+  submits Submit[]
+}
+
 model Skill {
   id   Int    @id @default(autoincrement())
   name String
@@ -41,10 +48,11 @@ model Answer {
 }
 
 model Submit {
-  user String
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
 
   answerId Int
   answer   Answer @relation(fields: [answerId], references: [id])
 
-  @@id([user, answerId])
+  @@id([userId, answerId])
 }

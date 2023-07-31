@@ -2,12 +2,14 @@ import { Stack, Title, Anchor, Flex, Text, Button } from "@mantine/core";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowBackUp } from "tabler-icons-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { IQuestion } from "../types";
+import { IQuestion } from "../../types";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import axxios from "../axxios";
+import axxios from "../../axxios";
+import { useTranslation } from "react-i18next";
 
 const Evaluation = () => {
+  const { t } = useTranslation();
   const { user } = useUser();
 
   const navigate = useNavigate();
@@ -110,7 +112,7 @@ const Evaluation = () => {
         onClick={next}
         disabled={currentAnswer === undefined}
       >
-        Next
+        {t("next")}
       </Button>
     </Stack>
   );

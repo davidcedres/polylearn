@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { ISkill } from "../../types";
 import axxios from "../../axxios";
 import TermsOfUse from "../../components/TermsOfUse";
-import {useUser} from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
 import { useEffect, useState } from "react";
 
 const Progress = () => {
@@ -31,7 +31,7 @@ const Progress = () => {
   })
 
   const createUserRequest = useMutation((body: { id: string, signature: string }) =>
-   axxios.post('/users', body))
+    axxios.post('/users', body))
 
   useEffect(() => {
     if (userRequest.status === 'loading') {
@@ -41,16 +41,20 @@ const Progress = () => {
     setTosModal(userRequest.isError)
   }, [userRequest.isError, userRequest.isFetched, userRequest.status])
 
-  const onClick = (id: number) => {
-    navigate(`/evaluation/${id}`);
-  };
-
   const handleSignature = (png: string) => {
     createUserRequest.mutate({ id: user!.id, signature: png }, {
       onSuccess: () => {
         void userRequest.refetch()
       }
     })
+  }
+
+  const handleStartTest = (skill: ISkill & { completed: boolean }) => {
+    if (userRequest.status === 'loading') return
+    if (skill.completed) return
+    if (userRequest.isError) return setTosModal(true)
+
+    navigate(`/evaluation/${skill.id}`)
   }
 
   return (
@@ -73,7 +77,7 @@ const Progress = () => {
             cursor: !skill.completed ? "pointer" : undefined,
           }}
           align="center"
-          onClick={() => !skill.completed && onClick(skill.id)}
+          onClick={() => handleStartTest(skill)}
         >
           <Stack>
             <Text fw="bold">{skill.name}</Text>
@@ -92,7 +96,7 @@ const Progress = () => {
 
       <Modal
         opened={tosModal}
-        onClose={() => null}
+        onClose={() => setTosModal(false)}
         w="lg"
         size="xl"
         title="Términos y condiciones"

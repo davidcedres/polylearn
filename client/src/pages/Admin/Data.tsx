@@ -62,7 +62,7 @@ const Data = () => {
 
           <tbody>
             {request.data?.data.map((submit) => (
-              <tr key={submit.user + submit.answer.id.toString()}>
+              <tr key={submit.userId + submit.answer.id.toString()}>
                 <td>{submit.userId.slice(-6).toUpperCase()}</td>
                 <td>{truncate(submit.answer.question.skill.name)}</td>
                 <td>

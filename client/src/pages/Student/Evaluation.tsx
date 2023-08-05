@@ -34,7 +34,7 @@ const Evaluation = () => {
 
   const submitRequest = useMutation((answerId: number) =>
     axxios.post("/submits", {
-      user: user!.id,
+      userId: user!.id,
       answerId,
     })
   );

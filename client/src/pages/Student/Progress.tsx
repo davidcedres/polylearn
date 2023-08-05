@@ -7,8 +7,9 @@ import { useTranslation } from "react-i18next";
 import { ISkill } from "../../types";
 import axxios from "../../axxios";
 import TermsOfUse from "../../components/TermsOfUse";
-import { useUser } from '@clerk/clerk-react';
+import { useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 
 const Progress = () => {
   // hooks
@@ -17,7 +18,7 @@ const Progress = () => {
   const navigate = useNavigate();
 
   // state
-  const [tosModal, setTosModal] = useState(false)
+  const [tosModal, setTosModal] = useState(false);
 
   // queries
   const skillsRequest = useQuery(["skills"], () =>
@@ -26,36 +27,45 @@ const Progress = () => {
     })
   );
 
-  const userRequest = useQuery(['user'], () => axxios.get('/users/' + user!.id), {
-    retry: false
-  })
+  const userRequest = useQuery(
+    ["user"],
+    () => axxios.get("/users/" + user!.id),
+    {
+      retry: false,
+    }
+  );
 
-  const createUserRequest = useMutation((body: { id: string, signature: string }) =>
-    axxios.post('/users', body))
+  const createUserRequest = useMutation(
+    (body: { id: string; signature: string }) => axxios.post("/users", body)
+  );
 
   useEffect(() => {
-    if (userRequest.status === 'loading') {
-      return
+    if (userRequest.status === "loading") {
+      return;
     }
 
-    setTosModal(userRequest.isError)
-  }, [userRequest.isError, userRequest.isFetched, userRequest.status])
+    setTosModal(userRequest.isError);
+  }, [userRequest.isError, userRequest.isFetched, userRequest.status]);
 
   const handleSignature = (png: string) => {
-    createUserRequest.mutate({ id: user!.id, signature: png }, {
-      onSuccess: () => {
-        void userRequest.refetch()
+    createUserRequest.mutate(
+      { id: user!.id, signature: png },
+      {
+        onSuccess: () => {
+          void userRequest.refetch();
+          toast.success("Gracias por participar");
+        },
       }
-    })
-  }
+    );
+  };
 
   const handleStartTest = (skill: ISkill & { completed: boolean }) => {
-    if (userRequest.status === 'loading') return
-    if (skill.completed) return
-    if (userRequest.isError) return setTosModal(true)
+    if (userRequest.status === "loading") return;
+    if (skill.completed) return;
+    if (userRequest.isError) return setTosModal(true);
 
-    navigate(`/evaluation/${skill.id}`)
-  }
+    navigate(`/evaluation/${skill.id}`);
+  };
 
   return (
     <Stack>
@@ -101,7 +111,10 @@ const Progress = () => {
         size="xl"
         title="Términos y condiciones"
       >
-        <TermsOfUse onSignature={handleSignature} loading={createUserRequest.isLoading} />
+        <TermsOfUse
+          onSignature={handleSignature}
+          loading={createUserRequest.isLoading}
+        />
       </Modal>
     </Stack>
   );

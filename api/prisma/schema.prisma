@@ -49,7 +49,7 @@ model Answer {
 
 model Submit {
   userId String
-  User   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   answerId Int
   answer   Answer @relation(fields: [answerId], references: [id])

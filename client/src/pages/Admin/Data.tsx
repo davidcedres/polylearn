@@ -63,7 +63,7 @@ const Data = () => {
           <tbody>
             {request.data?.data.map((submit) => (
               <tr key={submit.user + submit.answer.id.toString()}>
-                <td>{submit.user.slice(-6).toUpperCase()}</td>
+                <td>{submit.userId.slice(-6).toUpperCase()}</td>
                 <td>{truncate(submit.answer.question.skill.name)}</td>
                 <td>
                   <Tooltip label={submit.answer.question.text}>

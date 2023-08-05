@@ -14,19 +14,19 @@ const Home = () => {
       {userWantsToLogIn && <RedirectToSignIn />}
 
       <Title sx={{ fontSize: 86 }} lh={1.1} c="#1F2226">
-        Personalized{" "}
+        Aprendizaje{" "}
         <Text span c="#408CFF" inherit>
-          Learning
+          Personalizado
         </Text>{" "}
-        for Everyone
+        para Todos
       </Title>
 
       <Text sx={{ fontSize: 18 }} w="75%">
-        AI-powered personalized learning that adapts to you.
+        Aprendizaje personalizado impulsado por IA que se adapta a ti.
       </Text>
 
       <Button sx={{ alignSelf: "flex-start" }} onClick={login}>
-        Start Now
+        Empezar
       </Button>
     </Stack>
   );

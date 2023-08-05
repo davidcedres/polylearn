@@ -3,12 +3,9 @@ import { FC, useEffect, useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
 const TermsOfUse: FC<{
-  onSignature: (img: string) => void
-  loading: boolean
-}> = ({
-  onSignature,
-  loading
-}) => {
+  onSignature: (img: string) => void;
+  loading: boolean;
+}> = ({ onSignature, loading }) => {
   const ref = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<SignatureCanvas>(null);
 
@@ -22,14 +19,14 @@ const TermsOfUse: FC<{
   }, []);
 
   const handleSign = () => {
-    setSigned(true)
-  }
+    setSigned(true);
+  };
 
   const handleAccept = () => {
     if (!canvasRef.current) return;
 
-    const png = canvasRef.current.toDataURL()
-    onSignature(png)
+    const png = canvasRef.current.toDataURL();
+    onSignature(png);
   };
 
   return (
@@ -94,8 +91,9 @@ const TermsOfUse: FC<{
 
       <Text>Firme si esta de acuerdo con las condiciones</Text>
 
-      <Button disabled={!signed} loading={loading}
-       onClick={handleAccept}>Aceptar</Button>
+      <Button disabled={!signed} loading={loading} onClick={handleAccept}>
+        Aceptar
+      </Button>
     </Stack>
   );
 };

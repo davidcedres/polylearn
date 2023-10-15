@@ -13,6 +13,7 @@ import multerS3 from "multer-s3";
 import { s3 } from "./s3.js";
 import multer from "multer";
 import { nanoid } from "nanoid";
+import { merge } from "lodash";
 
 declare global {
     namespace Express {
@@ -202,7 +203,10 @@ app.post(
     upload.single("clip"),
     async (req: RequireAuthProp<Request>, res) => {
         try {
-            const submit = await prisma.submit.create({ data: req.body });
+            const submit = await prisma.submit.create({
+                // @ts-expect-error -- express is dumb
+                data: merge(req.body, { clip: req.file?.location }),
+            });
             res.json(submit);
         } catch (error) {
             // fails silently, good for double attempts

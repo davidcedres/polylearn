@@ -54,5 +54,7 @@ model Submit {
   answerId Int
   answer   Answer @relation(fields: [answerId], references: [id])
 
+  clip  String
+
   @@id([userId, answerId])
 }

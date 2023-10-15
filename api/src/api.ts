@@ -208,6 +208,8 @@ app.post(
             });
             res.json(submit);
         } catch (error) {
+            console.log(error);
+
             // fails silently, good for double attempts
             res.json({ bad: true });
         }

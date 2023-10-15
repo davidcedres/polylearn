@@ -203,8 +203,12 @@ app.post(
     async (req: RequireAuthProp<Request>, res) => {
         try {
             const submit = await prisma.submit.create({
-                // @ts-expect-error -- express is dumb
-                data: { ...req.body, clip: req.file?.location },
+                data: {
+                    answerId: Number(req.body.answerId),
+                    userId: req.body.userId,
+                    // @ts-expect-error -- express is dumb
+                    clip: req.file?.location,
+                },
             });
             res.json(submit);
         } catch (error) {

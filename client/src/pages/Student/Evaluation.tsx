@@ -63,8 +63,11 @@ const Evaluation = () => {
     useEffect(() => {
         if (answers.length !== questionsRequest.data?.data.length) return;
         if (submitRequest.isLoading) return;
+        if (answers.length !== clips.length) return;
 
         const zipp = zip(answers, clips);
+
+        console.log("ONCE");
 
         // we know we reached the end
         const exec = async () => {
@@ -82,14 +85,14 @@ const Evaluation = () => {
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         exec();
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         answers,
-        answers.length,
+        clips,
         navigate,
         queryClient,
         questionsRequest.data?.data.length,
-        submitRequest,
-        clips,
     ]);
 
     // START RECORDING WHEN USER STARTS NEW QUESTION
@@ -103,26 +106,20 @@ const Evaluation = () => {
     const next = async () => {
         if (currentAnswer === undefined) throw new Error("Answer missing");
 
-        try {
-            setLocked(true);
+        setLocked(true);
 
-            const file = await stopRecording();
+        const file = await stopRecording();
 
-            console.log("hurrayyy");
+        setAnswers((prev) => [...prev, currentAnswer]);
+        setClips((prev) => [...prev, file]);
 
-            setAnswers((prev) => [...prev, currentAnswer]);
-            setClips((prev) => [...prev, file]);
+        setIndex((prev) =>
+            prev === questionsRequest.data?.data.length ? prev : prev + 1
+        );
 
-            setIndex((prev) =>
-                prev === questionsRequest.data?.data.length ? prev : prev + 1
-            );
+        setCurrentAnswer(undefined);
 
-            setCurrentAnswer(undefined);
-
-            setLocked(false);
-        } catch (error) {
-            console.log(error);
-        }
+        setLocked(false);
     };
 
     const question = questionsRequest.data?.data[index];

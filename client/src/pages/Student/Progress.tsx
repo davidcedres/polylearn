@@ -12,112 +12,110 @@ import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
 const Progress = () => {
-  // hooks
-  const { user } = useUser();
-  const { t } = useTranslation();
-  const navigate = useNavigate();
+    // hooks
+    const { user } = useUser();
+    const { t } = useTranslation();
+    const navigate = useNavigate();
 
-  // state
-  const [tosModal, setTosModal] = useState(false);
+    // state
+    const [tosModal, setTosModal] = useState(false);
 
-  // queries
-  const skillsRequest = useQuery(["skills"], () =>
-    axxios.get<(ISkill & { completed: boolean })[]>("/skills", {
-      params: { status: "LIVE" },
-    })
-  );
-
-  const userRequest = useQuery(
-    ["user"],
-    () => axxios.get("/users/" + user!.id),
-    {
-      retry: false,
-    }
-  );
-
-  const createUserRequest = useMutation(
-    (body: { id: string; signature: string }) => axxios.post("/users", body)
-  );
-
-  useEffect(() => {
-    if (userRequest.status === "loading") {
-      return;
-    }
-
-    setTosModal(userRequest.isError);
-  }, [userRequest.isError, userRequest.isFetched, userRequest.status]);
-
-  const handleSignature = (png: string) => {
-    createUserRequest.mutate(
-      { id: user!.id, signature: png },
-      {
-        onSuccess: () => {
-          void userRequest.refetch();
-          toast.success("Gracias por participar");
-        },
-      }
+    // queries
+    const skillsRequest = useQuery(["skills"], () =>
+        axxios.get<(ISkill & { completed: boolean })[]>("/skills", {
+            params: { status: "LIVE" },
+        })
     );
-  };
 
-  const handleStartTest = (skill: ISkill & { completed: boolean }) => {
-    if (userRequest.status === "loading") return;
-    if (skill.completed) return;
-    if (userRequest.isError) return setTosModal(true);
+    const userRequest = useQuery(
+        ["user"],
+        () => axxios.get("/users/" + user!.id),
+        {
+            retry: false,
+        }
+    );
 
-    navigate(`/evaluation/${skill.id}`);
-  };
+    const createUserRequest = useMutation(
+        (body: { id: string; signature: string }) => axxios.post("/users", body)
+    );
 
-  return (
-    <Stack>
-      <Title>{t("welcome")}</Title>
+    useEffect(() => {
+        if (userRequest.status === "loading") {
+            return;
+        }
 
-      {skillsRequest.data?.data.length === 0 && (
-        <Text>No tests are available right now</Text>
-      )}
+        setTosModal(userRequest.isError);
+    }, [userRequest.isError, userRequest.isFetched, userRequest.status]);
 
-      {skillsRequest.data?.data.map((skill) => (
-        <Flex
-          key={skill.id}
-          p="xl"
-          justify="space-between"
-          sx={{
-            borderColor: "#C1C2C5",
-            borderWidth: "1px",
-            borderStyle: "solid",
-            cursor: !skill.completed ? "pointer" : undefined,
-          }}
-          align="center"
-          onClick={() => handleStartTest(skill)}
-        >
-          <Stack>
-            <Text fw="bold">{skill.name}</Text>
-            <Text>
-              {skill.questions.length} {t("questions")}
-            </Text>
-          </Stack>
+    const handleSignature = (png: string) => {
+        createUserRequest.mutate(
+            { id: user!.id, signature: png },
+            {
+                onSuccess: () => {
+                    void userRequest.refetch();
+                    toast.success("Gracias por participar");
+                },
+            }
+        );
+    };
 
-          {skill.completed ? (
-            <Check color="#00b341" />
-          ) : (
-            <PlayerPlay color="#00abfb" />
-          )}
-        </Flex>
-      ))}
+    const handleStartTest = (skill: ISkill & { completed: boolean }) => {
+        if (userRequest.status === "loading") return;
+        if (skill.completed) return;
+        if (userRequest.isError) return setTosModal(true);
 
-      <Modal
-        opened={tosModal}
-        onClose={() => setTosModal(false)}
-        w="lg"
-        size="xl"
-        title="Términos y condiciones"
-      >
-        <TermsOfUse
-          onSignature={handleSignature}
-          loading={createUserRequest.isLoading}
-        />
-      </Modal>
-    </Stack>
-  );
+        navigate(`/check/${skill.id}`);
+    };
+
+    return (
+        <Stack>
+            <Title>{t("welcome")}</Title>
+
+            {skillsRequest.data?.data.length === 0 && (
+                <Text>No tests are available right now</Text>
+            )}
+
+            {skillsRequest.data?.data.map((skill) => (
+                <Flex
+                    key={skill.id}
+                    p="xl"
+                    justify="space-between"
+                    sx={{
+                        cursor: !skill.completed ? "pointer" : undefined,
+                        backgroundColor: "#f8fafc",
+                    }}
+                    align="center"
+                    onClick={() => handleStartTest(skill)}
+                >
+                    <Stack>
+                        <Text fw="bold">{skill.name}</Text>
+                        <Text>
+                            {skill.questions.length} {t("questions")}
+                        </Text>
+                    </Stack>
+
+                    {skill.completed ? (
+                        <Check color="#00b341" />
+                    ) : (
+                        <PlayerPlay color="#00abfb" />
+                    )}
+                </Flex>
+            ))}
+
+            <Modal
+                opened={tosModal}
+                onClose={() => setTosModal(false)}
+                w="lg"
+                size="xl"
+                title="Términos y condiciones"
+            >
+                <TermsOfUse
+                    onSignature={handleSignature}
+                    loading={createUserRequest.isLoading}
+                />
+            </Modal>
+        </Stack>
+    );
 };
 
 export default Progress;

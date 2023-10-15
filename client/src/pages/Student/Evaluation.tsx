@@ -7,115 +7,190 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import axxios from "../../axxios";
 import { useTranslation } from "react-i18next";
+import { useCamera } from "../../useCamera";
+import { zip } from "lodash";
 
 const Evaluation = () => {
-  const { t } = useTranslation();
-  const { user } = useUser();
+    // HOOKS
+    const { id } = useParams();
+    const {
+        startPreview,
+        previewReady,
+        startRecording,
+        stopRecording,
+        recording,
+    } = useCamera();
+    const { t } = useTranslation();
+    const { user } = useUser();
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
+    if (!id) throw new Error("Id missing");
 
-  const { id } = useParams();
-  if (!id) throw new Error("Id missing");
+    // STATE
 
-  // keep track of what answers has the user picked
-  const [answers, setAnswers] = useState<number[]>([]);
+    // these should be zipped together eventually
+    const [answers, setAnswers] = useState<number[]>([]);
+    const [clips, setClips] = useState<File[]>([]);
 
-  const [index, setIndex] = useState(0);
-  const [currentAnswer, setCurrentAnswer] = useState<number>();
+    // index for the question user is currently interacting with
+    const [index, setIndex] = useState(0);
 
-  const questionsRequest = useQuery(["questions", id], () =>
-    axxios.get<IQuestion[]>(`/questions`, {
-      params: {
-        skillId: id,
-      },
-    })
-  );
+    // buffer for what answer he clicked last
+    const [currentAnswer, setCurrentAnswer] = useState<number>();
 
-  const submitRequest = useMutation((answerId: number) =>
-    axxios.post("/submits", {
-      userId: user!.id,
-      answerId,
-    })
-  );
+    const [locked, setLocked] = useState(false);
 
-  useEffect(() => {
-    if (answers.length !== questionsRequest.data?.data.length) return;
-    if (submitRequest.isLoading) return;
-
-    console.log("Effect Called");
-
-    // we know we reached the end
-    const exec = async () => {
-      await Promise.all(
-        answers.map((answerId) => submitRequest.mutateAsync(answerId))
-      );
-      await queryClient.invalidateQueries(["skills"]);
-      navigate("/success");
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    exec();
-  }, [
-    answers,
-    answers.length,
-    navigate,
-    queryClient,
-    questionsRequest.data?.data.length,
-    submitRequest,
-  ]);
-
-  const next = () => {
-    if (currentAnswer === undefined) throw new Error("Answer missing");
-
-    setAnswers((prev) => [...prev, currentAnswer]);
-    setIndex((prev) =>
-      prev === questionsRequest.data?.data.length ? prev : prev + 1
+    // QUERIES
+    const questionsRequest = useQuery(["questions", id], () =>
+        axxios.get<IQuestion[]>(`/questions`, {
+            params: {
+                skillId: id,
+            },
+        })
     );
 
-    setCurrentAnswer(undefined);
-  };
+    const submitRequest = useMutation(
+        (payload: { answerId: number; clip: File }) =>
+            axxios.postForm("/submits", {
+                userId: user!.id,
+                answerId: payload.answerId,
+                clip: payload.clip,
+            })
+    );
 
-  const question = questionsRequest.data?.data[index];
+    // WHEN USER ANSWERS THE LAST QUESTION WE WANNA SAVE THE INPUTS ON THE API
+    useEffect(() => {
+        if (answers.length !== questionsRequest.data?.data.length) return;
+        if (submitRequest.isLoading) return;
 
-  if (!question) return null;
+        const zipp = zip(answers, clips);
 
-  return (
-    <Stack>
-      <Anchor component={Link} to="/">
-        <ArrowBackUp />
-      </Anchor>
+        // we know we reached the end
+        const exec = async () => {
+            await Promise.all(
+                zipp.map(([answerId, clip]) =>
+                    submitRequest.mutateAsync({
+                        answerId: answerId!,
+                        clip: clip!,
+                    })
+                )
+            );
+            await queryClient.invalidateQueries(["skills"]);
+            navigate("/success");
+        };
 
-      <Title mb="xl">{question.text}</Title>
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        exec();
+    }, [
+        answers,
+        answers.length,
+        navigate,
+        queryClient,
+        questionsRequest.data?.data.length,
+        submitRequest,
+        clips,
+    ]);
 
-      {question.answers.map((answer) => (
-        <Flex
-          key={answer.id}
-          p="md"
-          justify="space-between"
-          sx={{
-            borderColor: "#C1C2C5",
-            borderWidth: "1px",
-            borderStyle: "solid",
-            cursor: "pointer",
-            backgroundColor: currentAnswer == answer.id ? "#E7F5FF" : "white",
-          }}
-          align="center"
-          onClick={() => setCurrentAnswer(answer.id)}
-        >
-          <Text>{answer.text}</Text>
-        </Flex>
-      ))}
+    // START RECORDING WHEN USER STARTS NEW QUESTION
+    useEffect(() => {
+        if (recording === true || previewReady === false) return;
 
-      <Button
-        sx={{ alignSelf: "flex-end" }}
-        onClick={next}
-        disabled={currentAnswer === undefined}
-      >
-        {t("next")}
-      </Button>
-    </Stack>
-  );
+        startRecording();
+    }, [index, previewReady, recording, startRecording]);
+
+    // ANSWER AND VIDEO IS SAVED IN STATE
+    const next = async () => {
+        if (currentAnswer === undefined) throw new Error("Answer missing");
+
+        try {
+            setLocked(true);
+
+            const file = await stopRecording();
+
+            console.log("hurrayyy");
+
+            setAnswers((prev) => [...prev, currentAnswer]);
+            setClips((prev) => [...prev, file]);
+
+            setIndex((prev) =>
+                prev === questionsRequest.data?.data.length ? prev : prev + 1
+            );
+
+            setCurrentAnswer(undefined);
+
+            setLocked(false);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const question = questionsRequest.data?.data[index];
+
+    if (!question) return null;
+
+    return (
+        <Stack>
+            <Anchor component={Link} to="/">
+                <ArrowBackUp />
+            </Anchor>
+
+            <Title mb="xl">{question.text}</Title>
+
+            <Text>
+                Debug:{" "}
+                {JSON.stringify({
+                    answers,
+                    videos: clips.map((video) => video.size),
+                })}
+            </Text>
+
+            {question.answers.map((answer) => (
+                <Flex
+                    key={answer.id}
+                    p="md"
+                    justify="space-between"
+                    sx={{
+                        borderColor: "#C1C2C5",
+                        borderWidth: "1px",
+                        borderStyle: "solid",
+                        cursor: "pointer",
+                        backgroundColor:
+                            currentAnswer == answer.id ? "#E7F5FF" : "white",
+                    }}
+                    align="center"
+                    onClick={() => setCurrentAnswer(answer.id)}
+                >
+                    <Text>{answer.text}</Text>
+                </Flex>
+            ))}
+
+            <video
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                ref={startPreview}
+                id="player"
+                autoPlay
+                muted
+                style={{
+                    position: "absolute",
+                    bottom: 24,
+                    width: "128px",
+                    height: "128px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                }}
+            />
+
+            <Button
+                sx={{ alignSelf: "flex-end" }}
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                onClick={next}
+                disabled={currentAnswer === undefined || locked}
+            >
+                {t("next")}
+            </Button>
+        </Stack>
+    );
 };
 
 export default Evaluation;

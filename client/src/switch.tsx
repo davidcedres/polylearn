@@ -15,54 +15,59 @@ import Skill from "./pages/Admin/Skill";
 import Evaluation from "./pages/Student/Evaluation";
 import Progress from "./pages/Student/Progress";
 import Success from "./pages/Student/Success";
+import CameraCheck from "./pages/Student/Check";
 
 const Switch = () => {
-  const { user } = useUser();
+    const { user } = useUser();
 
-  // not known who the user is or if session exists
-  if (user === undefined)
-    return (
-      <Flex h="100vh" align="center" justify="center">
-        <Loader />
-      </Flex>
-    );
+    // not known who the user is or if session exists
+    if (user === undefined)
+        return (
+            <Flex h="100vh" align="center" justify="center">
+                <Loader />
+            </Flex>
+        );
 
-  // public pages
-  if (user === null)
-    return (
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Landing />} />
-          <Route path="*" element={<p>404</p>} />
-        </Route>
-      </Routes>
-    );
+    // public pages
+    if (user === null)
+        return (
+            <Routes>
+                <Route path="/" element={<Layout />}>
+                    <Route index element={<Landing />} />
+                    <Route path="*" element={<p>404</p>} />
+                </Route>
+            </Routes>
+        );
 
-  const role = user.publicMetadata.role ?? "student";
+    const role = user.publicMetadata.role ?? "student";
 
-  // admin pages
-  if (role === "admin")
-    return (
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Admin />} />
-          <Route path="/skills/:id" element={<Skill />} />
-          <Route path="/skills/new" element={<NewSkill />} />
-          <Route path="/skills/:id/questions/new" element={<NewQuestion />} />
-        </Route>
-      </Routes>
-    );
+    // admin pages
+    if (role === "admin")
+        return (
+            <Routes>
+                <Route path="/" element={<Layout />}>
+                    <Route index element={<Admin />} />
+                    <Route path="/skills/:id" element={<Skill />} />
+                    <Route path="/skills/new" element={<NewSkill />} />
+                    <Route
+                        path="/skills/:id/questions/new"
+                        element={<NewQuestion />}
+                    />
+                </Route>
+            </Routes>
+        );
 
-  if (role === "student")
-    return (
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Progress />} />
-          <Route path="/evaluation/:id" element={<Evaluation />} />
-          <Route path="/success" element={<Success />} />
-        </Route>
-      </Routes>
-    );
+    if (role === "student")
+        return (
+            <Routes>
+                <Route path="/" element={<Layout />}>
+                    <Route index element={<Progress />} />
+                    <Route path="/check/:id" element={<CameraCheck />} />
+                    <Route path="/evaluation/:id" element={<Evaluation />} />
+                    <Route path="/success" element={<Success />} />
+                </Route>
+            </Routes>
+        );
 };
 
 export default Switch;

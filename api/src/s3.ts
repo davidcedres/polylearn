@@ -2,7 +2,7 @@ import "dotenv/config";
 import { S3 } from "@aws-sdk/client-s3";
 
 export const s3 = new S3({
-    endpoint: "http://storage:9000",
+    endpoint: "https://files.polylearn.io",
     forcePathStyle: true,
     region: "us-east-1",
     credentials: {

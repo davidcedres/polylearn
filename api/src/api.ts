@@ -13,6 +13,15 @@ import multerS3 from "multer-s3";
 import { s3 } from "./s3.js";
 import multer from "multer";
 import { nanoid } from "nanoid";
+import { Client as MinioClient } from "minio";
+
+const minioClient = new MinioClient({
+    endPoint: "files.polylearn.io",
+    port: 443,
+    useSSL: true,
+    accessKey: process.env.MINIO_ACCESS_KEY_ID!,
+    secretKey: process.env.MINIO_SECRET_ACCESS_KEY!,
+});
 
 declare global {
     namespace Express {
@@ -207,7 +216,7 @@ app.post(
                     answerId: Number(req.body.answerId),
                     userId: req.body.userId,
                     // @ts-expect-error -- express is dumb
-                    clip: req.file?.location,
+                    clip: req.file?.key,
                 },
             });
             res.json(submit);
@@ -238,7 +247,17 @@ app.get(
             },
         });
 
-        res.json(submits);
+        const val = await Promise.all(
+            submits.map(async (submit) => ({
+                ...submit,
+                clip: await minioClient.presignedGetObject(
+                    "clips",
+                    submit.clip
+                ),
+            }))
+        );
+
+        res.json(val);
     }
 );
 

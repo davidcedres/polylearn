@@ -1,74 +1,76 @@
 import { useCallback, useRef, useState } from "react";
-import { useAsync } from "react-use";
+import { useEffectOnce } from "react-use";
 
 export const useCamera = () => {
     const [camera, setCamera] = useState<string>("");
 
-    const [previewReady, setPreviewReady] = useState(false);
-    const [recording, setRecording] = useState(false);
-
-    const streamRef = useRef<MediaStream>();
-    const videoChunks = useRef<Blob[]>([]);
     const mediaRecorder = useRef<MediaRecorder>();
-
+    const recording = useRef<boolean>(false);
     const shouldStop = useRef(false);
     const stopped = useRef(false);
     const storeVideo = useRef<(value: File | PromiseLike<File>) => void>();
+    const videoChunks = useRef<Blob[]>([]);
 
     // let's find camera devices, put them on a state, and pick the first one as active one
-    useAsync(async () => {
-        await navigator.mediaDevices.getUserMedia({
-            video: true,
-        });
+    useEffectOnce(() => {
+        const cb = async () => {
+            await navigator.mediaDevices.getUserMedia({
+                video: true,
+            });
 
-        const devices = await navigator.mediaDevices.enumerateDevices();
+            const devices = await navigator.mediaDevices.enumerateDevices();
 
-        const cams = devices.filter((device) => device.kind === "videoinput");
-        setCamera(cams[0].deviceId);
-    }, []);
+            const cams = devices.filter(
+                (device) => device.kind === "videoinput"
+            );
+            setCamera(cams[0].deviceId);
+        };
 
-    const startPreview = useCallback(
+        void cb();
+    });
+
+    const onPreview = useCallback(
         async (node: HTMLVideoElement | null) => {
             if (node === null) return;
 
-            const mediaStream: MediaProvider =
-                await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        deviceId: camera,
-                    },
-                });
-
-            node.srcObject = mediaStream;
-            streamRef.current = mediaStream;
-            setPreviewReady(true);
+            node.srcObject = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    deviceId: camera,
+                },
+            });
         },
         [camera]
     );
 
-    const startRecording = () => {
-        if (streamRef.current === undefined) {
-            throw new Error("Stream not ready bro");
-        }
+    const startRecording = async () => {
+        videoChunks.current = [];
+        recording.current = true;
 
-        mediaRecorder.current = new MediaRecorder(streamRef.current, {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                deviceId: camera,
+            },
+        });
+
+        mediaRecorder.current = new MediaRecorder(stream, {
             mimeType: "video/webm",
         });
 
         mediaRecorder.current.addEventListener("error", () => {
-            console.log("SOMETHING WENT REALLY WRONG");
+            console.log("Recording failed");
         });
 
         mediaRecorder.current.addEventListener("start", () => {
-            console.log("Recording");
+            console.log("Recording started");
         });
 
         mediaRecorder.current.addEventListener(
             "dataavailable",
             function (e: BlobEvent) {
-                console.log("Data Requested");
-
                 if (e.data.size > 0) {
                     videoChunks.current.push(e.data);
                 }
@@ -78,17 +80,16 @@ export const useCamera = () => {
                     !stopped.current &&
                     mediaRecorder.current != null
                 ) {
-                    console.log(
-                        "And data requested determined it needs to stop"
-                    );
-
                     mediaRecorder.current.stop();
                     stopped.current = true;
+                    shouldStop.current = false;
                 }
             }
         );
 
         mediaRecorder.current.addEventListener("stop", () => {
+            console.log("Recording stopped");
+
             const blob = new Blob(videoChunks.current);
             const file = new File([blob], "video");
 
@@ -97,13 +98,14 @@ export const useCamera = () => {
                     "No callback was given where to submit the video file to"
                 );
 
-            stopped.current = false;
             storeVideo.current?.(file);
-            setRecording(false);
+
+            recording.current = false;
+            stopped.current = false;
+            videoChunks.current = [];
         });
 
         mediaRecorder.current.start();
-        setRecording(true);
     };
 
     const stopRecording = () => {
@@ -121,8 +123,7 @@ export const useCamera = () => {
     };
 
     return {
-        startPreview,
-        previewReady,
+        onPreview,
         startRecording,
         stopRecording,
         recording,

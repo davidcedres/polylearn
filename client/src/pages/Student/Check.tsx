@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 
 const Check = () => {
     const { id } = useParams();
-    const { startPreview } = useCamera();
+    const { onPreview } = useCamera();
 
     if (!id) throw new Error("Id missing");
 
@@ -16,7 +16,7 @@ const Check = () => {
 
             <video
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                ref={startPreview}
+                ref={onPreview}
                 id="player"
                 autoPlay
                 muted

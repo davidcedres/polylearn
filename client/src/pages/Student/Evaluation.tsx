@@ -13,13 +13,7 @@ import { zip } from "lodash";
 const Evaluation = () => {
     // HOOKS
     const { id } = useParams();
-    const {
-        startPreview,
-        previewReady,
-        startRecording,
-        stopRecording,
-        recording,
-    } = useCamera();
+    const { onPreview, startRecording, stopRecording, recording } = useCamera();
     const { t } = useTranslation();
     const { user } = useUser();
     const navigate = useNavigate();
@@ -67,8 +61,6 @@ const Evaluation = () => {
 
         const zipp = zip(answers, clips);
 
-        console.log("ONCE");
-
         // we know we reached the end
         const exec = async () => {
             await Promise.all(
@@ -97,10 +89,10 @@ const Evaluation = () => {
 
     // START RECORDING WHEN USER STARTS NEW QUESTION
     useEffect(() => {
-        if (recording === true || previewReady === false) return;
+        if (recording.current === true) return;
 
-        startRecording();
-    }, [index, previewReady, recording, startRecording]);
+        void startRecording();
+    }, [index, recording, startRecording, stopRecording]);
 
     // ANSWER AND VIDEO IS SAVED IN STATE
     const next = async () => {
@@ -134,14 +126,6 @@ const Evaluation = () => {
 
             <Title mb="xl">{question.text}</Title>
 
-            <Text>
-                Debug:{" "}
-                {JSON.stringify({
-                    answers,
-                    videos: clips.map((video) => video.size),
-                })}
-            </Text>
-
             {question.answers.map((answer) => (
                 <Flex
                     key={answer.id}
@@ -164,7 +148,7 @@ const Evaluation = () => {
 
             <video
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                ref={startPreview}
+                ref={onPreview}
                 id="player"
                 autoPlay
                 muted
@@ -183,6 +167,7 @@ const Evaluation = () => {
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 onClick={next}
                 disabled={currentAnswer === undefined || locked}
+                loading={submitRequest.isLoading}
             >
                 {t("next")}
             </Button>

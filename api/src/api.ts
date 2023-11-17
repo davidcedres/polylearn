@@ -282,7 +282,7 @@ app.get(
 
             const data = submits.map((submit) => [
                 submit.userId,
-                submit.answer.question.skill.name,
+                submit.answer.question.skill.id,
                 submit.answer.question.id,
                 submit.answer.text,
             ]);

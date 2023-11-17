@@ -71,8 +71,11 @@ const Evaluation = () => {
                     })
                 )
             );
-            await queryClient.invalidateQueries(["skills"]);
-            navigate("/success");
+
+            // ugly fix
+            window.location.href = "/";
+            // await queryClient.invalidateQueries(["skills"]);
+            // navigate("/success");
         };
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises

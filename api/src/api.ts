@@ -285,6 +285,7 @@ app.get(
                 submit.answer.question.skill.id,
                 submit.answer.question.id,
                 submit.answer.text,
+                submit.clip,
             ]);
 
             const str = stringify(data);

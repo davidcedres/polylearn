@@ -1,8 +1,12 @@
 from deepface import DeepFace
 import cv2
 import os
+import pandas as pd
 
 print("Libraries loaded")
+
+
+clip_to_emotion_map = {}
 
 for filename in os.listdir("raw/clips"):
     f = os.path.join("raw/clips", filename)
@@ -38,6 +42,25 @@ for filename in os.listdir("raw/clips"):
         [features] = DeepFace.analyze(
             img_path=img_path, actions=["emotion"], silent=True
         )
-        print("{} => {}".format(id + ".webm", features["dominant_emotion"]))
+        clip_to_emotion_map[id] = features["dominant_emotion"]
     except:
-        print("Error processing ", img_path)
+        print("Emotion not extracted from", img_path)
+
+df = pd.read_csv("./raw/dataset.csv")
+
+
+def find_emotion(clip_file):
+    file_name = clip_file.split(".")[0]
+    return clip_to_emotion_map[file_name] if file_name in clip_to_emotion_map else None
+
+
+df["emotion"] = df["clip_file"].apply(find_emotion)
+
+print("sample")
+print(df.sample(10))
+
+print("types of emotions found")
+print(df["emotion"].unique())
+
+print("general description")
+print(df.describe())

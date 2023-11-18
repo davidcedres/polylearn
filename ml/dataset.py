@@ -8,8 +8,8 @@ print("Libraries loaded")
 
 clip_to_emotion_map = {}
 
-for filename in os.listdir("raw/clips"):
-    f = os.path.join("raw/clips", filename)
+for filename in os.listdir("data/clips"):
+    f = os.path.join("data/clips", filename)
 
     if not f.endswith(".webm"):
         continue
@@ -35,7 +35,7 @@ for filename in os.listdir("raw/clips"):
         else:
             keep_processing = False
 
-    img_path = "raw/frames/{}.jpg".format(id)
+    img_path = "data/frames/{}.jpg".format(id)
     cv2.imwrite(img_path, frame)
 
     try:
@@ -46,7 +46,7 @@ for filename in os.listdir("raw/clips"):
     except:
         print("Emotion not extracted from", img_path)
 
-df = pd.read_csv("./raw/dataset.csv")
+df = pd.read_csv("./data/dataset.csv")
 
 
 def find_emotion(clip_file):
@@ -66,3 +66,5 @@ print(df["emotion"].unique())
 
 print("general description")
 print(df.describe())
+
+# this project was moved to https://deepnote.com/workspace/david-cedres-61e2-c724727c-72d9-4adf-b52d-cbe52695c012/project/Final-Project-31d1365b-2509-4598-a96d-2c47b820dcc8/notebook/Final%20Project-4d39c43a48974c8b91a5762813455bf1

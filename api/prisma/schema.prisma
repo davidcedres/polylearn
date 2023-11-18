@@ -28,8 +28,9 @@ enum Status {
 }
 
 model Question {
-  id   Int    @id @default(autoincrement())
-  text String
+  id           Int     @id @default(autoincrement())
+  text         String
+  right_answer String?
 
   skill   Skill @relation(fields: [skillId], references: [id])
   skillId Int
@@ -54,7 +55,7 @@ model Submit {
   answerId Int
   answer   Answer @relation(fields: [answerId], references: [id])
 
-  clip  String
+  clip String
 
   @@id([userId, answerId])
 }

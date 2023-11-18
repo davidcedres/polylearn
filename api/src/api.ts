@@ -285,10 +285,23 @@ app.get(
                 submit.answer.question.skill.id,
                 submit.answer.question.id,
                 submit.answer.text,
+                submit.answer.question.right_answer === submit.answer.text
+                    ? "correct"
+                    : "wrong",
                 submit.clip,
             ]);
 
-            const str = stringify(data);
+            const str = stringify([
+                [
+                    "user_id",
+                    "skill_id",
+                    "question_id",
+                    "answer_value",
+                    "correctness",
+                    "clip",
+                ],
+                ...data,
+            ]);
             res.status(200).send(str);
         } catch (error) {
             res.json({ bad: true });

@@ -56,6 +56,8 @@ def find_emotion(clip_file):
 
 df["emotion"] = df["clip_file"].apply(find_emotion)
 
+df.dropna()
+
 print("sample")
 print(df.sample(10))
 
